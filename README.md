@@ -22,4 +22,4 @@ project = <project> and issuetype in subTaskIssueTypes() AND Sprint = <sprint_id
 
 
 ## Example Result
-![SprintVelocity](test.png)
+![SprintVelocity](images/test.png)
