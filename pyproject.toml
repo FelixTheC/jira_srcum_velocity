@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "sprint_velocity"
-version = "1.0.1"
-description = ""
+version = "1.0.2"
+description = "Generating a Matplotlib plot to see the scrum velocity for a sprint."
 authors = ["FelixTheC <fberndt87@gmail.com>"]
 license = "MIT"
 readme = "README.md"
@@ -14,6 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Framework :: Matplotlib",
 ]
+homepage = "https://github.com/FelixTheC/jira_srcum_velocity"
 
 [tool.poetry.dependencies]
 python = "^3.9"
