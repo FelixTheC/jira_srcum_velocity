@@ -26,4 +26,8 @@ jobs:
         run: poetry run  black sprint_velocity --check
       - name: Lint with flake8
         run: poetry run flake8 sprint_velocity
-
+      - name: Check if project starts without error
+        run: |
+          poetry build --format=wheel
+          pip install dist/*
+          jira_statistics --help
