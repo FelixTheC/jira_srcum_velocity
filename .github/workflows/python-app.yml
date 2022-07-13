@@ -20,6 +20,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install poetry
+          poetry install
       - name: Check with isort
         run: poetry run isort sprint_velocity --check-only
       - name: Lint with black
