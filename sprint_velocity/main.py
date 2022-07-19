@@ -96,7 +96,7 @@ def velocity_graph(
     json_data = get_json_data()
     if not (company_data := json_data.get(company)):
         typer.secho(
-            f"Please create a setting for {company} via settings_board.",
+            f"Please create settings for {company} via `jira_statistics settings-board --help`.",
             fg=typer.colors.RED,
         )
         raise typer.Abort
@@ -123,6 +123,11 @@ def velocity_graph(
         response = request("GET", url=base_url, headers=headers)
 
         file_root = Path(json_data.get("file_path", ""), project)
+        if not json_data.get("file_path"):
+            typer.secho(
+                f"For a custom file path run `jira_statistics settings-filestorage --help`.",
+                fg=typer.colors.BRIGHT_MAGENTA,
+            )
         outputfile = file_root / Path(sprint_info["name"])
         if not file_root.exists():
             file_root.mkdir(parents=True)
