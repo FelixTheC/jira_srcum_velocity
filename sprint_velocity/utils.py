@@ -9,7 +9,6 @@ from requests import request
 from requests.structures import CaseInsensitiveDict
 from strongtyping.strong_typing import match_typing
 
-
 BASE_CONFIG_FILE = "config.json"
 CONFIG_FILE_PATH = Path(__file__).parent / BASE_CONFIG_FILE
 
@@ -27,6 +26,8 @@ def current_date():
 
 
 def get_json_data() -> dict:
+    if not CONFIG_FILE_PATH.exists():
+        return {}
     with CONFIG_FILE_PATH.open("r") as file:
         try:
             return json.load(file)
