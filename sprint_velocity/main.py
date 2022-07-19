@@ -24,9 +24,11 @@ app = typer.Typer()
 
 @app.command()
 def settings_backupfile(
-    backup_file_path: Path,
+    backup_file_path: Path = typer.Argument(
+        ..., show_default=False, help="The path to your backup folder."
+    ),
     date_format: str = typer.Argument(
-        help=DATETIME_HELP, default="%Y-%m-%d %H:%M:%S", autocompletion=complete_date_format
+        help=DATETIME_HELP, default="%Y-%m-%d_%H_%M_%S", autocompletion=complete_date_format
     ),
 ):
     json_data = get_json_data()
@@ -36,7 +38,11 @@ def settings_backupfile(
 
 
 @app.command()
-def settings_filestorage(file_path: Path):
+def settings_filestorage(
+    file_path: Path = typer.Argument(
+        ..., show_default=False, help="The path where your files should be stored."
+    )
+):
     json_data = get_json_data()
     json_data["file_path"] = file_path.as_posix()
     save_json_data(json_data)
@@ -44,10 +50,25 @@ def settings_filestorage(file_path: Path):
 
 @app.command()
 def settings_board(
-    company: str,
-    board_id: int,
-    token: str,
-    url: str = typer.Option(..., help="https://jira.foo.de"),
+    company: str = typer.Argument(
+        ..., show_default=False, help="The name of the company the board is from. Example: adesso"
+    ),
+    board_id: int = typer.Argument(
+        ...,
+        show_default=False,
+        help="The id of the board. "
+        "You can find these inside of the url "
+        "`https://jira.foobar.de/secure/RapidBoard.jspa?rapidView=1234` "
+        "it is the value of the `rapidView` => 1234.",
+    ),
+    token: str = typer.Argument(
+        ...,
+        show_default=False,
+        help="The token can be generated in your profile section inside your jira.",
+    ),
+    url: str = typer.Argument(
+        ..., show_default=False, help="The url of your board/jira server. https://jira.foobar.de"
+    ),
 ):
     json_data = get_json_data()
     json_data[company] = {board_id: {"token": token, "url": f"{url}/rest"}}
@@ -61,11 +82,21 @@ def display_config():
 
 
 @app.command()
-def velocity_graph(company: str, board_ids: Optional[List[int]] = typer.Argument(None)):
+def velocity_graph(
+    company: str = typer.Argument(
+        ..., show_default=False, help="The company name you used in settings."
+    ),
+    board_ids: Optional[List[int]] = typer.Argument(
+        None,
+        show_default=False,
+        help="If specified it will only create plots for the selected board_ids "
+        "otherwise all board_ids belonging to the selected company will be created.",
+    ),
+):
     json_data = get_json_data()
     if not (company_data := json_data.get(company)):
         typer.secho(
-            f"Please create a setting for {company} via settings_board.",
+            f"Please create settings for {company} via `jira_statistics settings-board --help`.",
             fg=typer.colors.RED,
         )
         raise typer.Abort
@@ -92,15 +123,26 @@ def velocity_graph(company: str, board_ids: Optional[List[int]] = typer.Argument
         response = request("GET", url=base_url, headers=headers)
 
         file_root = Path(json_data.get("file_path", ""), project)
+        if not json_data.get("file_path"):
+            typer.secho(
+                "For a custom file path run `jira_statistics settings-filestorage --help`.",
+                fg=typer.colors.BRIGHT_MAGENTA,
+            )
         outputfile = file_root / Path(sprint_info["name"])
         if not file_root.exists():
             file_root.mkdir(parents=True)
 
         if backup_file_path := json_data.get("backup_file_path"):
+
             new_file = Path(f"{outputfile}.png")
             if new_file.exists():
-                filename = outputfile.split("/")[-1]
-                date_str = datetime.date.today().strftime(json_data.get("date_format", "%Y-%m-%d"))
+                if not Path(backup_file_path).exists():
+                    Path(backup_file_path).mkdir(parents=True)
+
+                filename = outputfile.name
+                date_str = datetime.datetime.now().strftime(
+                    json_data.get("date_format", "%Y-%m-%d")
+                )
                 backup_file = Path(backup_file_path) / Path(f"{filename}_{date_str}.png")
                 shutil.copy(new_file, backup_file)
 
