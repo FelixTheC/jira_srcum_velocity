@@ -9,6 +9,9 @@ from requests import request
 from requests.structures import CaseInsensitiveDict
 from strongtyping.strong_typing import match_typing
 
+BASE_CONFIG_FILE = "config.json"
+CONFIG_FILE_PATH = Path(__file__).parent / BASE_CONFIG_FILE
+
 
 @match_typing
 def create_dates(start_end: datetime.date, end_date: datetime.date):
@@ -23,7 +26,9 @@ def current_date():
 
 
 def get_json_data() -> dict:
-    with Path("config.json").open("r") as file:
+    if not CONFIG_FILE_PATH.exists():
+        return {}
+    with CONFIG_FILE_PATH.open("r") as file:
         try:
             return json.load(file)
         except JSONDecodeError:
@@ -32,7 +37,7 @@ def get_json_data() -> dict:
 
 @match_typing
 def save_json_data(json_data: dict):
-    with Path("config.json").open("w") as file:
+    with CONFIG_FILE_PATH.open("w") as file:
         json.dump(json_data, file)
 
 
