@@ -49,9 +49,11 @@ DATETIME_HELP = """
 
 %j => Day of the year as a zero-padded decimal number.
 
-%U => Week number of the year (Sunday as the first day of the week) as a zero-padded decimal number. All days in a new year preceding the first Sunday are considered to be in week 0.
+%U => Week number of the year (Sunday as the first day of the week) as a zero-padded decimal number. 
+All days in a new year preceding the first Sunday are considered to be in week 0.
 
-%W => Week number of the year (Monday as the first day of the week) as a zero-padded decimal number. All days in a new year preceding the first Monday are considered to be in week 0.
+%W => Week number of the year (Monday as the first day of the week) as a zero-padded decimal number. 
+All days in a new year preceding the first Monday are considered to be in week 0.
 
 %c => Locale’s appropriate date and time representation.
 
