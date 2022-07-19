@@ -12,6 +12,56 @@ from strongtyping.strong_typing import match_typing
 BASE_CONFIG_FILE = "config.json"
 CONFIG_FILE_PATH = Path(__file__).parent / BASE_CONFIG_FILE
 
+DATETIME_HELP = """
+%a => Weekday as locale’s abbreviated name.
+
+%A => Weekday as locale’s full name.
+
+%w => Weekday as a decimal number, where 0 is Sunday and 6 is Saturday.
+
+%d => Day of the month as a zero-padded decimal number.
+
+%b => Month as locale’s abbreviated name.
+
+%B => Month as locale’s full name.
+
+%m => Month as a zero-padded decimal number.
+
+%y => Year without century as a zero-padded decimal number.
+
+%Y => Year with century as a decimal number.
+
+%H => Hour (24-hour clock) as a zero-padded decimal number.
+
+%I => Hour (12-hour clock) as a zero-padded decimal number.
+
+%p => Locale’s equivalent of either AM or PM.
+
+%M => Minute as a zero-padded decimal number.
+
+%S => Second as a zero-padded decimal number.
+
+%f => Microsecond as a decimal number, zero-padded to 6 digits.
+
+%z => UTC offset in the form ±HHMM[SS[.ffffff]] (empty string if the object is naive).
+
+%Z => Time zone name (empty string if the object is naive).
+
+%j => Day of the year as a zero-padded decimal number.
+
+%U => Week number of the year (Sunday as the first day of the week) as a zero-padded decimal number.
+All days in a new year preceding the first Sunday are considered to be in week 0.
+
+%W => Week number of the year (Monday as the first day of the week) as a zero-padded decimal number.
+All days in a new year preceding the first Monday are considered to be in week 0.
+
+%c => Locale’s appropriate date and time representation.
+
+%x => Locale’s appropriate date representation.
+
+%X => Locale’s appropriate time representation.
+"""
+
 
 @match_typing
 def create_dates(start_end: datetime.date, end_date: datetime.date):
@@ -42,7 +92,7 @@ def save_json_data(json_data: dict):
 
 
 @match_typing
-def get_header(token: str) -> dict:
+def get_header(token: str) -> CaseInsensitiveDict:
     headers = CaseInsensitiveDict()
     headers["Accept"] = "application/json"
     if not token:
@@ -61,7 +111,7 @@ def get_header(token: str) -> dict:
 
 
 @match_typing
-def get_current_sprint_info(url: str, board_id: int, headers: dict):
+def get_current_sprint_info(url: str, board_id: int, headers: CaseInsensitiveDict):
     base_url = f"{url}/agile/1.0/board/{board_id}/sprint"
     response = request("GET", url=base_url, headers=headers)
 
@@ -75,7 +125,7 @@ def get_current_sprint_info(url: str, board_id: int, headers: dict):
 
 
 @match_typing
-def get_project(url: str, board_id: int, headers):
+def get_project(url: str, board_id: int, headers: CaseInsensitiveDict):
     base_url = f"{url}/agile/1.0/board/{board_id}/project"
     response = request("GET", url=base_url, headers=headers)
     values = response.json()["values"]
@@ -93,3 +143,17 @@ def display_settings(data: dict, tab_level: int = 0):
         else:
             typer.secho(f"{tab}{key}: {val}", fg=color)
         idx += 1
+
+
+valid_datetime_completions = [
+    ("%Y-%m-%d %H:%M:%S", "2022-01-31 12:30:59"),
+    ("%Y/%m/%d %H:%M:%S", "2022/01/31 12:30:59"),
+    ("%Y_%m_%d_%H:%M:%S", "2022_01_31_12:30:59"),
+    ("%Y%m%d%H%M%S", "20220131123059"),
+]
+
+
+def complete_date_format(incomplete: str) -> tuple:
+    for val, help_text in valid_datetime_completions:
+        if val.startswith(incomplete):
+            yield val, help_text
