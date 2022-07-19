@@ -9,14 +9,14 @@ from requests import request
 
 from sprint_velocity.plot_matplolib import generate_plot
 from sprint_velocity.utils import (
+    DATETIME_HELP,
+    complete_date_format,
     display_settings,
     get_current_sprint_info,
     get_header,
     get_json_data,
     get_project,
     save_json_data,
-    DATETIME_HELP,
-    complete_date_format,
 )
 
 app = typer.Typer()
