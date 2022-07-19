@@ -125,7 +125,7 @@ def velocity_graph(
         file_root = Path(json_data.get("file_path", ""), project)
         if not json_data.get("file_path"):
             typer.secho(
-                f"For a custom file path run `jira_statistics settings-filestorage --help`.",
+                "For a custom file path run `jira_statistics settings-filestorage --help`.",
                 fg=typer.colors.BRIGHT_MAGENTA,
             )
         outputfile = file_root / Path(sprint_info["name"])
