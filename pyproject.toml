@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sprint_velocity"
-version = "1.0.2"
+version = "1.0.3"
 description = "Generating a Matplotlib plot to see the scrum velocity for a sprint."
 authors = ["FelixTheC <fberndt87@gmail.com>"]
 license = "MIT"
