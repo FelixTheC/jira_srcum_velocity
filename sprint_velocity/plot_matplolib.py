@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from strongtyping.strong_typing import match_typing
 
-from sprint_velocity.utils import create_dates, current_date
-
 
 @match_typing
 def generate_plot(json_data: dict, sprint_start_date: str, outputfile, sprint_interval: int = 14):
+    from sprint_velocity.utils import create_dates, current_date
+
     data = []
     sprint_start = datetime.datetime.strptime(sprint_start_date, "%Y-%m-%d").date()
     sprint_end = sprint_start + datetime.timedelta(days=sprint_interval)

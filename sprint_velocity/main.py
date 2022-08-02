@@ -1,5 +1,3 @@
-import datetime
-import shutil
 import urllib.parse
 from pathlib import Path
 from typing import List
@@ -8,7 +6,6 @@ from typing import Optional
 import typer
 from requests import request
 
-from sprint_velocity.plot_matplolib import generate_plot
 from sprint_velocity.utils import StatisticFileProcess
 from sprint_velocity.utils import display_settings
 from sprint_velocity.utils import get_current_sprint_info
