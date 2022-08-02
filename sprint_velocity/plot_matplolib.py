@@ -3,11 +3,10 @@ from itertools import accumulate
 
 import matplotlib.pyplot as plt
 import pandas as pd
-from strongtyping.config import SEVERITY_LEVEL
 from strongtyping.strong_typing import match_typing
 
 
-@match_typing(severity=SEVERITY_LEVEL.WARNING)
+@match_typing
 def generate_plot(json_data: dict, sprint_start_date: str, outputfile, sprint_interval: int = 14):
     from sprint_velocity.utils import create_dates, current_date
 
@@ -15,8 +14,6 @@ def generate_plot(json_data: dict, sprint_start_date: str, outputfile, sprint_in
     sprint_start = datetime.datetime.strptime(sprint_start_date, "%Y-%m-%d").date()
     sprint_end = sprint_start + datetime.timedelta(days=sprint_interval)
     dates = list(create_dates(sprint_start, sprint_end))
-    open_issues_dates = list(create_dates(sprint_start, current_date()))
-
     try:
         date_today = dates.index(current_date())
     except ValueError:
@@ -25,13 +22,9 @@ def generate_plot(json_data: dict, sprint_start_date: str, outputfile, sprint_in
     title = f"Sprint from {sprint_start}: Issues"
     total = json_data["total"]
     issues = json_data["issues"]
-
-    plt.figure()
-    plt.title(title)
-
     for issue in issues:
         created = issue["fields"]["created"]
-        resolutiondate = issue["fields"]["resolutiondate"]
+        updated = issue["fields"]["updated"]
         status = issue["fields"]["status"]["statusCategory"]["key"]
         status_name = issue["fields"]["status"]["name"]
         data.append(
@@ -39,34 +32,25 @@ def generate_plot(json_data: dict, sprint_start_date: str, outputfile, sprint_in
                 "created": created,
                 "status": status,
                 "status_name": status_name,
-                "resolutiondate": resolutiondate,
+                "updated": updated,
             }
         )
     df = pd.DataFrame(data)
 
     df["created"] = pd.to_datetime(df["created"])
-    df["resolutiondate"] = pd.to_datetime(df["resolutiondate"])
+    df["updated"] = pd.to_datetime(df["updated"])
 
-    df_sprint = df[(df["resolutiondate"].dt.date >= sprint_start) & (df["status"] == "done")]
-    df_resolved_count = df_sprint.groupby(df_sprint["resolutiondate"].dt.date)["status"].count()
-
-    resolved_values = [
-        df_resolved_count.get(datetime.date.fromordinal(obj.toordinal()), 0) for obj in open_issues_dates
-    ]
-    if resolved_values:
-        resolved_values[0] = total - resolved_values[0]
-    else:
-        resolved_values.append(total)
-
-    stepper_x = list(range(len(open_issues_dates)))[: len(resolved_values)]
-    stepper_y = list(accumulate(resolved_values, lambda x_, y_: x_ - y_))
-
-    plt.step(x=stepper_x, y=stepper_y, color="r", label="Issues Open")
+    sprint_issues = df[df["created"].dt.date <= sprint_start]
+    dummy_ea = sprint_issues.groupby(sprint_issues["created"].dt.date)["created"].count()
+    total_sprint_issues = dummy_ea.values.sum()
 
     df_after_sprint_start = df[df["created"].dt.date >= sprint_start]
     df_after_sprint_start_count = df_after_sprint_start.groupby(
         df_after_sprint_start["created"].dt.date
     )["created"].count()
+
+    df_sprint = df[(df["updated"].dt.date >= sprint_start) & (df["status"] == "done")]
+    df_resolved_count = df_sprint.groupby(df_sprint["updated"].dt.date)["status"].count()
 
     bar_x = list(range(len(dates)))
     bar_height = [
@@ -74,11 +58,29 @@ def generate_plot(json_data: dict, sprint_start_date: str, outputfile, sprint_in
         for obj in dates
     ]
 
+    resolved_values = [
+        df_resolved_count.get(datetime.date.fromordinal(obj.toordinal()), None) for obj in dates
+    ]
+    resolved_values = [obj for obj in resolved_values if obj is not None]
+    resolved_values[0] = total - resolved_values[0]
+
+    open_issues = [
+        df_after_sprint_start_count.get(datetime.date.fromordinal(obj.toordinal()), 0)
+        for obj in dates
+    ]
+    open_issues[0] = total_sprint_issues
+
+    x = list(range(len(dates)))[: len(resolved_values)]
+    y = list(accumulate(resolved_values, lambda x_, y_: x_ - y_))
+
+    plt.figure()
+    plt.title(title)
+    plt.step(x=x, y=y, color="r", label="Issues Open")
+
     plt.bar(bar_x, bar_height, color="silver", label="In Sprint Added")
     plt.ylabel("Issues")
 
-    sprint_days = list(range(len(dates)))
-    # count down by percentage
+    sprint_days = list(range(len(dates)))  #
     results = [total * (1 - (idx * 0.1)) for idx in sprint_days]
 
     plt.plot(sprint_days, results, color="navy", label="Base Line")
