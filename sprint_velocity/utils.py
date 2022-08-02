@@ -1,12 +1,16 @@
+import dataclasses
 import datetime
 import json
+import shutil
 from json import JSONDecodeError
 from pathlib import Path
+from typing import Union
 
 import pendulum
 import typer
 from requests import request
 from requests.structures import CaseInsensitiveDict
+from strongtyping.strong_typing import match_class_typing
 from strongtyping.strong_typing import match_typing
 
 BASE_CONFIG_FILE = "config.json"
@@ -157,3 +161,32 @@ def complete_date_format(incomplete: str) -> tuple:
     for val, help_text in valid_datetime_completions:
         if val.startswith(incomplete):
             yield val, help_text
+
+
+@match_class_typing
+@dataclasses.dataclass
+class StatisticFileProcess:
+    file_root: Path
+    sprint_name: str
+    sprint_start_date: str
+    config_data: dict
+    json_response: Union[list, dict]
+
+
+def process_file(file_process: StatisticFileProcess):
+    outputfile = file_process.file_root / Path(file_process.sprint_name)
+
+    if not file_process.file_root.exists():
+        file_process.file_root.mkdir(parents=True)
+
+    if backup_file_path := file_process.config_data.get("backup_file_path"):
+        new_file = Path(f"{outputfile}.png")
+        if new_file.exists():
+            filename = outputfile.split("/")[-1]
+            date_str = datetime.date.today().strftime(file_process.config_data.get("date_format", "%Y-%m-%d"))
+            backup_file = Path(backup_file_path) / Path(f"{filename}_{date_str}.png")
+            shutil.copy(new_file, backup_file)
+
+    generate_plot(file_process.json_response, file_process.sprint_start_date, outputfile)
+
+    typer.echo(f"Plot was saved under {outputfile}.png")

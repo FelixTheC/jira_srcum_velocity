@@ -2,7 +2,8 @@ import datetime
 import shutil
 import urllib.parse
 from pathlib import Path
-from typing import List, Optional
+from typing import List
+from typing import Optional
 
 import typer
 from requests import request
@@ -71,7 +72,25 @@ def settings_board(
     ),
 ):
     json_data = get_json_data()
-    json_data[company] = {board_id: {"token": token, "url": f"{url}/rest"}}
+    current = json_data.get(company, {})
+    json_data[company] = {project: {"token": token, "url": f"{url}/rest"}, **current}
+    save_json_data(json_data)
+
+
+@app.command()
+def settings_add_sprint_to_project(
+        company: str,
+        project: str,
+        sprint_id: int,
+        sprint_start_date: str
+):
+    json_data = get_json_data()
+    try:
+        json_data[company][project]
+    except KeyError:
+        typer.secho("Run `jira_statistics settings_project --help` first.")
+        raise typer.Abort()
+    json_data[company][project][sprint_id] = sprint_start_date
     save_json_data(json_data)
 
 
@@ -79,6 +98,35 @@ def settings_board(
 def display_config():
     json_data = get_json_data()
     display_settings(json_data)
+
+
+@app.command()
+def velocity_graph_plain(company: str, project: str, sprint_id: int):
+    json_data = get_json_data()
+    if not (company_data := json_data.get(company)):
+        typer.secho(
+            f"Please create a setting for {company} via settings_board.",
+            fg=typer.colors.RED,
+        )
+        raise typer.Abort
+
+    token = company_data[project]["token"]
+    url = company_data[project]["url"]
+    sprint_start_date = company_data[project][str(sprint_id)]
+
+    headers = get_header(token)
+
+    search_str = f"project = {project} and issuetype in subTaskIssueTypes() AND Sprint = {sprint_id} AND (resolution = unresolved or resolved >= {sprint_start_date})"  # noqa: E501
+    search_query = urllib.parse.quote(search_str)
+    base_url = f"{url}/api/2/search?jql={search_query}"
+    response = request("GET", url=base_url, headers=headers)
+
+    file_root = Path(json_data.get("file_path", ""), project)
+    process_file(StatisticFileProcess(file_root=file_root,
+                                      sprint_name=str(sprint_id),
+                                      sprint_start_date=sprint_start_date,
+                                      config_data=json_data,
+                                      json_response=response.json()))
 
 
 @app.command()
@@ -154,4 +202,4 @@ def velocity_graph(
 
 
 if __name__ == "__main__":
-    app()
+    app(["display-config"])
