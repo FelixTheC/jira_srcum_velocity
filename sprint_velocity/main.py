@@ -6,18 +6,17 @@ from typing import Optional
 import typer
 from requests import request
 
-from sprint_velocity.utils import (
-    DATETIME_HELP,
-    complete_date_format,
-    display_settings,
-    get_current_sprint_info,
-    get_header,
-    get_json_data,
-    get_project,
-    save_json_data,
-)
+from sprint_velocity.utils import StatisticFileProcess, create_initial_json
+from sprint_velocity.utils import display_settings
+from sprint_velocity.utils import get_current_sprint_info
+from sprint_velocity.utils import get_header
+from sprint_velocity.utils import get_json_data
+from sprint_velocity.utils import get_project
+from sprint_velocity.utils import process_file
+from sprint_velocity.utils import save_json_data
 
 app = typer.Typer()
+create_initial_json()
 
 
 @app.command()
@@ -199,4 +198,4 @@ def velocity_graph(
 
 
 if __name__ == "__main__":
-    app(["display-config"])
+    app()
