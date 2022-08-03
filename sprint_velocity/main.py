@@ -6,7 +6,7 @@ from typing import Optional
 import typer
 from requests import request
 
-from sprint_velocity.utils import StatisticFileProcess
+from sprint_velocity.utils import StatisticFileProcess, create_initial_json
 from sprint_velocity.utils import display_settings
 from sprint_velocity.utils import get_current_sprint_info
 from sprint_velocity.utils import get_header
@@ -16,6 +16,7 @@ from sprint_velocity.utils import process_file
 from sprint_velocity.utils import save_json_data
 
 app = typer.Typer()
+create_initial_json()
 
 
 @app.command()
@@ -152,4 +153,4 @@ def velocity_graph(company: str, board_ids: Optional[List[int]] = typer.Argument
 
 
 if __name__ == "__main__":
-    app(["display-config"])
+    app()
