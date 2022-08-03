@@ -70,7 +70,7 @@ def get_header(token: str) -> dict:
 
 
 @match_typing
-def get_current_sprint_info(url: str, board_id: int, headers: dict):
+def get_current_sprint_info(url: str, board_id: int, headers):
     base_url = f"{url}/agile/1.0/board/{board_id}/sprint"
     response = request("GET", url=base_url, headers=headers)
 
@@ -123,7 +123,7 @@ def process_file(file_process: StatisticFileProcess):
     if backup_file_path := file_process.config_data.get("backup_file_path"):
         new_file = Path(f"{outputfile}.png")
         if new_file.exists():
-            filename = outputfile.split("/")[-1]
+            filename = outputfile.name.split("/")[-1]
             date_str = datetime.date.today().strftime(file_process.config_data.get("date_format", "%Y-%m-%d"))
             backup_file = Path(backup_file_path) / Path(f"{filename}_{date_str}.png")
             shutil.copy(new_file, backup_file)
