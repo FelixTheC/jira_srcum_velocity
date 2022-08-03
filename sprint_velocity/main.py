@@ -198,4 +198,4 @@ def velocity_graph(
 
 
 if __name__ == "__main__":
-    app()
+    app(["velocity-graph", "adesso", "4223"])
