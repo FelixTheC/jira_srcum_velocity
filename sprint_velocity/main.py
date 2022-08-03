@@ -132,8 +132,8 @@ def velocity_graph(company: str, board_ids: Optional[List[int]] = typer.Argument
         url = company_data[board_id]["url"]
 
         headers = get_header(token)
-        project = get_project(url, board_id, headers)
-        sprint_info = get_current_sprint_info(url, board_id, headers)
+        project = get_project(url, int(board_id), headers)
+        sprint_info = get_current_sprint_info(url, int(board_id), headers)
         sprint_start_date = sprint_info["start_date"]
 
         search_str = f"project = {project} and issuetype in subTaskIssueTypes() AND Sprint = {sprint_info['id']} AND (resolution = unresolved or resolved >= {sprint_start_date})"  # noqa: E501
@@ -153,4 +153,4 @@ def velocity_graph(company: str, board_ids: Optional[List[int]] = typer.Argument
 
 
 if __name__ == "__main__":
-    app()
+    app(["velocity-graph", "adesso", "4223"])
