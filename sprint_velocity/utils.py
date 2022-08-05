@@ -4,14 +4,13 @@ import json
 import shutil
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Union, Any
+from typing import Any, Union
 
 import pendulum
 import typer
 from requests import request
 from requests.structures import CaseInsensitiveDict
-from strongtyping.strong_typing import match_class_typing
-from strongtyping.strong_typing import match_typing
+from strongtyping.strong_typing import match_class_typing, match_typing
 
 BASE_CONFIG_FILE = "config.json"
 CONFIG_FILE_PATH = Path(__file__).parent / BASE_CONFIG_FILE
@@ -191,7 +190,9 @@ def process_file(file_process: StatisticFileProcess):
         new_file = Path(f"{outputfile}.png")
         if new_file.exists():
             filename = outputfile.name.split("/")[-1]
-            date_str = datetime.date.today().strftime(file_process.config_data.get("date_format", "%Y-%m-%d"))
+            date_str = datetime.date.today().strftime(
+                file_process.config_data.get("date_format", "%Y-%m-%d")
+            )
             backup_file = Path(backup_file_path) / Path(f"{filename}_{date_str}.png")
             shutil.copy(new_file, backup_file)
 
