@@ -30,6 +30,7 @@ strongtyping = "*"
 flake8 = "*"
 isort = "*"
 black = "*"
+pytest = "*"
 
 [tool.poetry.scripts]
 jira_statistics = "sprint_velocity.main:app"
