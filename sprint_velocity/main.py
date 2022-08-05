@@ -6,7 +6,7 @@ from typing import Optional
 import typer
 from requests import request
 
-from sprint_velocity.utils import StatisticFileProcess, create_initial_json
+from sprint_velocity.utils import StatisticFileProcess, create_initial_json, get_json_response
 from sprint_velocity.utils import display_settings
 from sprint_velocity.utils import get_current_sprint_info
 from sprint_velocity.utils import get_header
@@ -29,6 +29,8 @@ def settings_backupfile(
     ),
 ):
     json_data = get_json_data()
+    if not backup_file_path.exists():
+        backup_file_path.mkdir(parents=True, exist_ok=True)
     json_data["backup_file_path"] = backup_file_path.as_posix()
     json_data["date_format"] = date_format
     save_json_data(json_data)
@@ -100,6 +102,7 @@ def display_config():
 def velocity_graph_plain(company: str, project: str, sprint_id: int):
     json_data = get_json_data()
     if not (company_data := json_data.get(company)):
+
         typer.secho(
             f"Please create a setting for {company} via settings_board.",
             fg=typer.colors.RED,
@@ -115,14 +118,14 @@ def velocity_graph_plain(company: str, project: str, sprint_id: int):
     search_str = f"project = {project} and issuetype in subTaskIssueTypes() AND Sprint = {sprint_id} AND (resolution = unresolved or resolved >= {sprint_start_date})"  # noqa: E501
     search_query = urllib.parse.quote(search_str)
     base_url = f"{url}/api/2/search?jql={search_query}"
-    response = request("GET", url=base_url, headers=headers)
 
+    json_response = get_json_response(base_url, headers=headers)
     file_root = Path(json_data.get("file_path", ""), project)
     process_file(StatisticFileProcess(file_root=file_root,
                                       sprint_name=str(sprint_id),
                                       sprint_start_date=sprint_start_date,
                                       config_data=json_data,
-                                      json_response=response.json()))
+                                      json_response=json_response))
 
 
 @app.command()
@@ -164,7 +167,7 @@ def velocity_graph(
         search_query = urllib.parse.quote(search_str)
 
         base_url = f"{url}/api/2/search?jql={search_query}"
-        response = request("GET", url=base_url, headers=headers)
+        json_response = get_json_response(base_url, headers=headers)
 
         file_root = Path(json_data.get("file_path", ""), project)
         if not json_data.get("file_path"):
