@@ -62,7 +62,10 @@ def generate_plot(json_data: dict, sprint_start_date: str, outputfile, sprint_in
         df_resolved_count.get(datetime.date.fromordinal(obj.toordinal()), None) for obj in dates
     ]
     resolved_values = [obj for obj in resolved_values if obj is not None]
-    resolved_values[0] = total - resolved_values[0]
+    if resolved_values:
+        resolved_values[0] = total - resolved_values[0]
+    else:
+        resolved_values.append(total)
 
     open_issues = [
         df_after_sprint_start_count.get(datetime.date.fromordinal(obj.toordinal()), 0)
