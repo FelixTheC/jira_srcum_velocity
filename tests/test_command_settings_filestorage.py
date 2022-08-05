@@ -1,7 +1,7 @@
 import typer
-from sprint_velocity.main import settings_filestorage
 from typer.testing import CliRunner
 
+from sprint_velocity.main import settings_filestorage
 from tests.conftest import get_tmp_config
 
 runner = CliRunner()
