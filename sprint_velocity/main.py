@@ -1,19 +1,21 @@
 import urllib.parse
 from pathlib import Path
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
 import typer
-from requests import request
 
-from sprint_velocity.utils import StatisticFileProcess, create_initial_json, get_json_response
-from sprint_velocity.utils import display_settings
-from sprint_velocity.utils import get_current_sprint_info
-from sprint_velocity.utils import get_header
-from sprint_velocity.utils import get_json_data
-from sprint_velocity.utils import get_project
-from sprint_velocity.utils import process_file
-from sprint_velocity.utils import save_json_data
+from sprint_velocity.utils import (
+    StatisticFileProcess,
+    create_initial_json,
+    display_settings,
+    get_current_sprint_info,
+    get_header,
+    get_json_data,
+    get_json_response,
+    get_project,
+    process_file,
+    save_json_data,
+)
 
 app = typer.Typer()
 create_initial_json()
@@ -38,10 +40,10 @@ def settings_filestorage(file_path: Path):
 
 @app.command()
 def settings_board(
-        company: str,
-        board_id: int,
-        token: str,
-        url: str = typer.Argument(..., help="https://jira.foo.de"),
+    company: str,
+    board_id: int,
+    token: str,
+    url: str = typer.Argument(..., help="https://jira.foo.de"),
 ):
     json_data = get_json_data()
     current = json_data.get(company, {})
@@ -51,10 +53,10 @@ def settings_board(
 
 @app.command()
 def settings_project(
-        company: str,
-        project: str,
-        token: str,
-        url: str = typer.Argument(..., help="https://jira.foo.de"),
+    company: str,
+    project: str,
+    token: str,
+    url: str = typer.Argument(..., help="https://jira.foo.de"),
 ):
     json_data = get_json_data()
     current = json_data.get(company, {})
@@ -64,10 +66,7 @@ def settings_project(
 
 @app.command()
 def settings_add_sprint_to_project(
-        company: str,
-        project: str,
-        sprint_id: int,
-        sprint_start_date: str
+    company: str, project: str, sprint_id: int, sprint_start_date: str
 ):
     json_data = get_json_data()
     try:
@@ -108,11 +107,15 @@ def velocity_graph_plain(company: str, project: str, sprint_id: int):
 
     json_response = get_json_response(base_url, headers=headers)
     file_root = Path(json_data.get("file_path", ""), project)
-    process_file(StatisticFileProcess(file_root=file_root,
-                                      sprint_name=str(sprint_id),
-                                      sprint_start_date=sprint_start_date,
-                                      config_data=json_data,
-                                      json_response=json_response))
+    process_file(
+        StatisticFileProcess(
+            file_root=file_root,
+            sprint_name=str(sprint_id),
+            sprint_start_date=sprint_start_date,
+            config_data=json_data,
+            json_response=json_response,
+        )
+    )
 
 
 @app.command()
@@ -147,11 +150,15 @@ def velocity_graph(company: str, board_ids: Optional[List[int]] = typer.Argument
         json_response = get_json_response(base_url, headers=headers)
 
         file_root = Path(json_data.get("file_path", ""), project)
-        process_file(StatisticFileProcess(file_root=file_root,
-                                          sprint_name=sprint_info["name"],
-                                          sprint_start_date=sprint_start_date,
-                                          config_data=json_data,
-                                          json_response=json_response))
+        process_file(
+            StatisticFileProcess(
+                file_root=file_root,
+                sprint_name=sprint_info["name"],
+                sprint_start_date=sprint_start_date,
+                config_data=json_data,
+                json_response=json_response,
+            )
+        )
 
     typer.echo("All plots processed.")
 
