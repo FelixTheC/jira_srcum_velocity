@@ -143,7 +143,7 @@ def velocity_graph(company: str, board_ids: Optional[List[int]] = typer.Argument
 
         sprint_start_date = sprint_info["start_date"]
 
-        search_str = f"project = {project} and issuetype in subTaskIssueTypes() AND Sprint = {sprint_info['id']} AND (resolution = unresolved or resolved >= {sprint_start_date})"  # noqa: E501
+        search_str = f"project = {project} and issuetype in subTaskIssueTypes() AND Sprint = {sprint_info['id']} AND (resolution = unresolved or resolved >= {sprint_start_date}) ORDER BY resolved ASC"  # noqa: E501
         search_query = urllib.parse.quote(search_str)
 
         base_url = f"{url}/api/2/search?jql={search_query}"
