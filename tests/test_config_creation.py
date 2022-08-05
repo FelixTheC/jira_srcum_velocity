@@ -1,9 +1,7 @@
 from pathlib import Path
 
-from typer.testing import CliRunner
-
 from sprint_velocity.main import app
-
+from typer.testing import CliRunner
 runner = CliRunner()
 
 
