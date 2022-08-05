@@ -4,8 +4,8 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from sprint_velocity.config import Settings
 from sprint_velocity import utils
+from sprint_velocity.config import Settings
 
 
 @pytest.fixture(scope="function")
@@ -24,12 +24,13 @@ def mocked_response(monkeypatch):
             def json(self):
                 return {
                     "values": [
-                        {"key": "foobar",
-                         "state": "active",
-                         "id": 4224,
-                         "startDate": "2022-10-10",
-                         "name": "mock",
-                         }
+                        {
+                            "key": "foobar",
+                            "state": "active",
+                            "id": 4224,
+                            "startDate": "2022-10-10",
+                            "name": "mock",
+                        }
                     ],
                     "total": 3,
                     "issues": [
@@ -38,12 +39,9 @@ def mocked_response(monkeypatch):
                                 "created": "2022-08-12T10:50:39.000+0200",
                                 "updated": "2022-08-12T10:50:39.000+0200",
                                 "status": {
-                                    "statusCategory": {
-                                        "key": "indeterminate",
-                                        "name": "process"
-                                    },
-                                    "name": "process"
-                                }
+                                    "statusCategory": {"key": "indeterminate", "name": "process"},
+                                    "name": "process",
+                                },
                             },
                         },
                         {
@@ -51,12 +49,9 @@ def mocked_response(monkeypatch):
                                 "created": "2022-08-13T10:50:39.000+0200",
                                 "updated": "2022-08-13T10:50:39.000+0200",
                                 "status": {
-                                    "statusCategory": {
-                                        "key": "indeterminate",
-                                        "name": "process"
-                                    },
-                                    "name": "process"
-                                }
+                                    "statusCategory": {"key": "indeterminate", "name": "process"},
+                                    "name": "process",
+                                },
                             },
                         },
                         {
@@ -64,15 +59,12 @@ def mocked_response(monkeypatch):
                                 "created": "2022-08-14T10:50:39.000+0200",
                                 "updated": "2022-08-14T10:50:39.000+0200",
                                 "status": {
-                                    "statusCategory": {
-                                        "key": "indeterminate",
-                                        "name": "process"
-                                    },
-                                    "name": "process"
-                                }
+                                    "statusCategory": {"key": "indeterminate", "name": "process"},
+                                    "name": "process",
+                                },
                             }
-                        }
-                    ]
+                        },
+                    ],
                 }
 
         return MockedResponse()
