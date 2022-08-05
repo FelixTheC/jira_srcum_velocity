@@ -37,7 +37,7 @@ def mocked_response(monkeypatch):
                         {
                             "fields": {
                                 "created": "2022-08-12T10:50:39.000+0200",
-                                "updated": "2022-08-12T10:50:39.000+0200",
+                                "resolutiondate": "2022-08-12T10:50:39.000+0200",
                                 "status": {
                                     "statusCategory": {"key": "indeterminate", "name": "process"},
                                     "name": "process",
@@ -47,7 +47,7 @@ def mocked_response(monkeypatch):
                         {
                             "fields": {
                                 "created": "2022-08-13T10:50:39.000+0200",
-                                "updated": "2022-08-13T10:50:39.000+0200",
+                                "resolutiondate": "2022-08-13T10:50:39.000+0200",
                                 "status": {
                                     "statusCategory": {"key": "indeterminate", "name": "process"},
                                     "name": "process",
@@ -57,7 +57,7 @@ def mocked_response(monkeypatch):
                         {
                             "fields": {
                                 "created": "2022-08-14T10:50:39.000+0200",
-                                "updated": "2022-08-14T10:50:39.000+0200",
+                                "resolutiondate": "2022-08-14T10:50:39.000+0200",
                                 "status": {
                                     "statusCategory": {"key": "indeterminate", "name": "process"},
                                     "name": "process",
