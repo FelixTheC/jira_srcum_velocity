@@ -1,7 +1,10 @@
+import json
+from pathlib import Path
+
 import typer
+from sprint_velocity.main import settings_backupfile
 from typer.testing import CliRunner
 
-from sprint_velocity.main import settings_backupfile
 from tests.conftest import get_tmp_config
 
 runner = CliRunner()

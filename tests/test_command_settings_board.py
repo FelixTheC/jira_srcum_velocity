@@ -1,8 +1,8 @@
 import pytest
 import typer
+from sprint_velocity.main import settings_board
 from typer.testing import CliRunner
 
-from sprint_velocity.main import settings_board
 from tests.conftest import get_tmp_config
 
 runner = CliRunner()
@@ -23,7 +23,5 @@ def test_settings_board(tmp_config):
 @pytest.mark.parametrize("invalid_board_id", ("1$34", "123A", "42.21"))
 def test_settings_board_board_id_must_int(tmp_config, invalid_board_id):
     app.command()(settings_board)
-    result = runner.invoke(
-        app, ["exampleCorps", invalid_board_id, "12456abcd", "https://jira.foobar.de"]
-    )
+    result = runner.invoke(app, ["exampleCorps", invalid_board_id, "12456abcd", "https://jira.foobar.de"])
     assert result.exit_code == 2
