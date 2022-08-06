@@ -22,11 +22,19 @@ jobs:
           pip install poetry
           poetry install
       - name: Check with isort
-        run: poetry run isort sprint_velocity --check-only
+        run: |
+          poetry run isort sprint_velocity/ --check-only
+          poetry run isort tests/ --check-only
       - name: Lint with black
-        run: poetry run  black sprint_velocity --check
+        run: |
+          poetry run  black sprint_velocity/ --check
+          poetry run  black tests/ --check
       - name: Lint with flake8
-        run: poetry run flake8 sprint_velocity
+        run: |
+          poetry run flake8 sprint_velocity/
+          poetry run flake8 tests/
+      - name: Run tests
+        run: poetry run pytest -v tests/
       - name: Check if project starts without error
         run: |
           poetry build --format=wheel

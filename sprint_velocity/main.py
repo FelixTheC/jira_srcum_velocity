@@ -1,48 +1,38 @@
-import datetime
-import shutil
 import urllib.parse
 from pathlib import Path
 from typing import List, Optional
 
 import typer
-from requests import request
 
-from sprint_velocity.plot_matplolib import generate_plot
 from sprint_velocity.utils import (
-    DATETIME_HELP,
-    complete_date_format,
+    StatisticFileProcess,
+    create_initial_json,
     display_settings,
     get_current_sprint_info,
     get_header,
     get_json_data,
+    get_json_response,
     get_project,
+    process_file,
     save_json_data,
 )
 
 app = typer.Typer()
+create_initial_json()
 
 
 @app.command()
-def settings_backupfile(
-    backup_file_path: Path = typer.Argument(
-        ..., show_default=False, help="The path to your backup folder."
-    ),
-    date_format: str = typer.Argument(
-        help=DATETIME_HELP, default="%Y-%m-%d_%H_%M_%S", autocompletion=complete_date_format
-    ),
-):
+def settings_backupfile(backup_file_path: Path, date_format: str):
     json_data = get_json_data()
+    if not backup_file_path.exists():
+        backup_file_path.mkdir(parents=True, exist_ok=True)
     json_data["backup_file_path"] = backup_file_path.as_posix()
     json_data["date_format"] = date_format
     save_json_data(json_data)
 
 
 @app.command()
-def settings_filestorage(
-    file_path: Path = typer.Argument(
-        ..., show_default=False, help="The path where your files should be stored."
-    )
-):
+def settings_filestorage(file_path: Path):
     json_data = get_json_data()
     json_data["file_path"] = file_path.as_posix()
     save_json_data(json_data)
@@ -50,28 +40,41 @@ def settings_filestorage(
 
 @app.command()
 def settings_board(
-    company: str = typer.Argument(
-        ..., show_default=False, help="The name of the company the board is from. Example: adesso"
-    ),
-    board_id: int = typer.Argument(
-        ...,
-        show_default=False,
-        help="The id of the board. "
-        "You can find these inside of the url "
-        "`https://jira.foobar.de/secure/RapidBoard.jspa?rapidView=1234` "
-        "it is the value of the `rapidView` => 1234.",
-    ),
-    token: str = typer.Argument(
-        ...,
-        show_default=False,
-        help="The token can be generated in your profile section inside your jira.",
-    ),
-    url: str = typer.Argument(
-        ..., show_default=False, help="The url of your board/jira server. https://jira.foobar.de"
-    ),
+    company: str,
+    board_id: int,
+    token: str,
+    url: str = typer.Argument(..., help="https://jira.foo.de"),
 ):
     json_data = get_json_data()
-    json_data[company] = {board_id: {"token": token, "url": f"{url}/rest"}}
+    current = json_data.get(company, {})
+    json_data[company] = {board_id: {"token": token, "url": f"{url}/rest"}, **current}
+    save_json_data(json_data)
+
+
+@app.command()
+def settings_project(
+    company: str,
+    project: str,
+    token: str,
+    url: str = typer.Argument(..., help="https://jira.foo.de"),
+):
+    json_data = get_json_data()
+    current = json_data.get(company, {})
+    json_data[company] = {project: {"token": token, "url": f"{url}/rest"}, **current}
+    save_json_data(json_data)
+
+
+@app.command()
+def settings_add_sprint_to_project(
+    company: str, project: str, sprint_id: int, sprint_start_date: str
+):
+    json_data = get_json_data()
+    try:
+        json_data[company][project]
+    except KeyError:
+        typer.secho("Run `jira_statistics settings_project --help` first.")
+        raise typer.Abort()
+    json_data[company][project][sprint_id] = sprint_start_date
     save_json_data(json_data)
 
 
@@ -82,21 +85,45 @@ def display_config():
 
 
 @app.command()
-def velocity_graph(
-    company: str = typer.Argument(
-        ..., show_default=False, help="The company name you used in settings."
-    ),
-    board_ids: Optional[List[int]] = typer.Argument(
-        None,
-        show_default=False,
-        help="If specified it will only create plots for the selected board_ids "
-        "otherwise all board_ids belonging to the selected company will be created.",
-    ),
-):
+def velocity_graph_plain(company: str, project: str, sprint_id: int):
+    json_data = get_json_data()
+    if not (company_data := json_data.get(company)):
+
+        typer.secho(
+            f"Please create a setting for {company} via settings_board.",
+            fg=typer.colors.RED,
+        )
+        raise typer.Abort
+
+    token = company_data[project]["token"]
+    url = company_data[project]["url"]
+    sprint_start_date = company_data[project][str(sprint_id)]
+
+    headers = get_header(token)
+
+    search_str = f"project = {project} and issuetype in subTaskIssueTypes() AND Sprint = {sprint_id} AND (resolution = unresolved or resolved >= {sprint_start_date})"  # noqa: E501
+    search_query = urllib.parse.quote(search_str)
+    base_url = f"{url}/api/2/search?jql={search_query}"
+
+    json_response = get_json_response(base_url, headers=headers)
+    file_root = Path(json_data.get("file_path", ""), project)
+    process_file(
+        StatisticFileProcess(
+            file_root=file_root,
+            sprint_name=str(sprint_id),
+            sprint_start_date=sprint_start_date,
+            config_data=json_data,
+            json_response=json_response,
+        )
+    )
+
+
+@app.command()
+def velocity_graph(company: str, board_ids: Optional[List[int]] = typer.Argument(None)):
     json_data = get_json_data()
     if not (company_data := json_data.get(company)):
         typer.secho(
-            f"Please create settings for {company} via `jira_statistics settings-board --help`.",
+            f"Please create a setting for {company} via settings_board.",
             fg=typer.colors.RED,
         )
         raise typer.Abort
@@ -107,51 +134,34 @@ def velocity_graph(
         if ids and int(board_id) not in ids:
             continue
 
-        int_board_id = int(board_id)
         token = company_data[board_id]["token"]
         url = company_data[board_id]["url"]
 
         headers = get_header(token)
-        project = get_project(url, int_board_id, headers)
-        sprint_info = get_current_sprint_info(url, int_board_id, headers)
+        project = get_project(url, int(board_id), headers)
+        sprint_info = get_current_sprint_info(url, int(board_id), headers)
+
         sprint_start_date = sprint_info["start_date"]
 
-        search_str = f"project = {project} and issuetype in subTaskIssueTypes() AND Sprint = {sprint_info['id']} AND (resolution = unresolved or resolved >= {sprint_start_date})"  # noqa: E501
+        search_str = f"project = {project} and issuetype in subTaskIssueTypes() AND Sprint = {sprint_info['id']} AND (resolution = unresolved or resolved >= {sprint_start_date}) ORDER BY resolved ASC"  # noqa: E501
         search_query = urllib.parse.quote(search_str)
 
         base_url = f"{url}/api/2/search?jql={search_query}"
-        response = request("GET", url=base_url, headers=headers)
+        json_response = get_json_response(base_url, headers=headers)
 
         file_root = Path(json_data.get("file_path", ""), project)
-        if not json_data.get("file_path"):
-            typer.secho(
-                "For a custom file path run `jira_statistics settings-filestorage --help`.",
-                fg=typer.colors.BRIGHT_MAGENTA,
+        process_file(
+            StatisticFileProcess(
+                file_root=file_root,
+                sprint_name=sprint_info["name"],
+                sprint_start_date=sprint_start_date,
+                config_data=json_data,
+                json_response=json_response,
             )
-        outputfile = file_root / Path(sprint_info["name"])
-        if not file_root.exists():
-            file_root.mkdir(parents=True)
-
-        if backup_file_path := json_data.get("backup_file_path"):
-
-            new_file = Path(f"{outputfile}.png")
-            if new_file.exists():
-                if not Path(backup_file_path).exists():
-                    Path(backup_file_path).mkdir(parents=True)
-
-                filename = outputfile.name
-                date_str = datetime.datetime.now().strftime(
-                    json_data.get("date_format", "%Y-%m-%d")
-                )
-                backup_file = Path(backup_file_path) / Path(f"{filename}_{date_str}.png")
-                shutil.copy(new_file, backup_file)
-
-        generate_plot(response.json(), sprint_start_date, outputfile)
-
-        typer.echo(f"Plot was saved under {outputfile}.png")
+        )
 
     typer.echo("All plots processed.")
 
 
 if __name__ == "__main__":
-    app()
+    app(["velocity-graph", "adesso", "4223"])
