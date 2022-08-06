@@ -51,7 +51,8 @@ def generate_plot(json_data: dict, sprint_start_date: str, outputfile, sprint_in
     df_resolved_count = df_sprint.groupby(df_sprint["resolutiondate"].dt.date)["status"].count()
 
     resolved_values = [
-        df_resolved_count.get(datetime.date.fromordinal(obj.toordinal()), 0) for obj in open_issues_dates
+        df_resolved_count.get(datetime.date.fromordinal(obj.toordinal()), 0)
+        for obj in open_issues_dates
     ]
     if resolved_values:
         resolved_values[0] = total - resolved_values[0]
