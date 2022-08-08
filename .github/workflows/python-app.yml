@@ -35,6 +35,7 @@ jobs:
           poetry run flake8 tests/
       - name: Run tests
         run: poetry run pytest -v tests/
+        working-directory: ./temp
       - name: Check if project starts without error
         run: |
           poetry build --format=wheel
